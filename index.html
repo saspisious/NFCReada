@@ -6,7 +6,6 @@
     <title>NFC Tag Manager</title>
     
     <!-- PWA Configuration -->
-    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -50,47 +49,58 @@
             opacity: 0.9;
         }
 
+        .install-banner {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .install-banner-content {
+            flex: 1;
+        }
+
+        .install-banner-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .install-banner-text {
+            font-size: 13px;
+            opacity: 0.95;
+        }
+
+        .install-btn {
+            background: white;
+            color: #38a169;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .install-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
         .card {
             background: white;
             border-radius: 20px;
             padding: 25px;
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .tab-btn {
-            flex: 1;
-            min-width: 100px;
-            padding: 12px 20px;
-            border: none;
-            background: #f0f0f0;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
         }
 
         .scan-btn {
@@ -368,40 +378,6 @@
             line-height: 1.6;
         }
 
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            padding: 10px 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-around;
-        }
-
-        .nav-item {
-            text-align: center;
-            color: #999;
-            cursor: pointer;
-            transition: color 0.3s;
-            flex: 1;
-        }
-
-        .nav-item.active {
-            color: #667eea;
-        }
-
-        .nav-icon {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-
-        .nav-label {
-            font-size: 11px;
-            font-weight: 600;
-        }
-
         .modal {
             position: fixed;
             top: 0;
@@ -542,6 +518,16 @@
             <p>Read, Write & Automate NFC Tags</p>
         </div>
 
+        <!-- Install Banner -->
+        <div id="installBanner" class="install-banner">
+            <div class="install-banner-content">
+                <div class="install-banner-title">📲 Install as App</div>
+                <div class="install-banner-text">Add to home screen for quick access</div>
+            </div>
+            <button class="install-btn" id="installButton">Install</button>
+            <button class="install-close" onclick="document.getElementById('installBanner').style.display='none'">&times;</button>
+        </div>
+
         <!-- Main Card -->
         <div class="card">
             <div id="scanSection">
@@ -621,17 +607,9 @@
                     <div class="template-icon">📲</div>
                     <div class="template-name">Open App</div>
                 </div>
-                <div class="template-card" onclick="selectTemplate('bluetooth')">
-                    <div class="template-icon">🔵</div>
-                    <div class="template-name">Bluetooth</div>
-                </div>
                 <div class="template-card" onclick="selectTemplate('social')">
                     <div class="template-icon">🌐</div>
                     <div class="template-name">Social Media</div>
-                </div>
-                <div class="template-card" onclick="selectTemplate('custom')">
-                    <div class="template-icon">⚙️</div>
-                    <div class="template-name">Custom</div>
                 </div>
             </div>
         </div>
@@ -643,116 +621,24 @@
             <div id="savedTagsList"></div>
         </div>
 
-        <!-- Automation Section -->
-        <div class="card" id="automationSection">
-            <h3 style="margin-bottom: 15px; color: #333;">🤖 Automation & Settings</h3>
-            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Configure automatic actions when scanning tags</p>
-            
-            <div class="info-box">
-                <strong>ℹ️ Note:</strong> Due to browser limitations, some automation features may require additional permissions or may not work on all devices. For full automation, consider using your phone's built-in NFC automation tools or dedicated apps.
-            </div>
-
-            <div class="automation-item">
-                <div class="automation-header">
-                    <div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">📱 Auto-Open App Links</div>
-                        <div style="font-size: 12px; color: #666;">Automatically open apps from NFC tags</div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="autoOpenApps" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="automation-item">
-                <div class="automation-header">
-                    <div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">🔔 Scan Notifications</div>
-                        <div style="font-size: 12px; color: #666;">Show notifications on successful scans</div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="scanNotifications" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="automation-item">
-                <div class="automation-header">
-                    <div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">💾 Auto-Save Scanned Tags</div>
-                        <div style="font-size: 12px; color: #666;">Automatically save all scanned tags</div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="autoSave">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="automation-item">
-                <div class="automation-header">
-                    <div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">🔊 Sound Effects</div>
-                        <div style="font-size: 12px; color: #666;">Play sounds for scans and writes</div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="soundEffects" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-top: 20px;">
-                <label>🌐 Default Browser Action</label>
-                <select id="browserAction" style="cursor: pointer;">
-                    <option value="open">Open URLs immediately</option>
-                    <option value="ask">Ask before opening URLs</option>
-                    <option value="copy">Just copy URLs</option>
-                </select>
-            </div>
-
-            <button class="btn btn-secondary" onclick="exportSettings()">
-                📤 Export Settings
-            </button>
-            <button class="btn btn-secondary" onclick="importSettings()">
-                📥 Import Settings
-            </button>
-            <button class="btn btn-secondary" onclick="clearAllData()" style="background: #f44336; color: white; margin-top: 5px;">
-                🗑️ Clear All Data
-            </button>
-        </div>
-
         <!-- Info Section -->
         <div class="card">
-            <h3 style="margin-bottom: 15px; color: #333;">ℹ️ About & Help</h3>
+            <h3 style="margin-bottom: 15px; color: #333;">ℹ️ Quick Guide</h3>
             
             <div class="info-box">
-                <strong>📱 Device Compatibility:</strong><br>
-                This app requires a device with NFC capability and a browser that supports Web NFC API (currently Chrome/Edge on Android).
+                <strong>📱 Requirements:</strong><br>
+                • Chrome/Edge browser on Android<br>
+                • Device with NFC capability<br>
+                • NFC enabled in phone settings
             </div>
 
             <div style="margin-top: 15px; font-size: 13px; line-height: 1.8;">
                 <h4 style="color: #333; margin-bottom: 10px;">How to Use:</h4>
                 <ol style="padding-left: 20px; color: #666;">
-                    <li style="margin-bottom: 8px;"><strong>Scanning:</strong> Tap "Scan NFC Tag" and hold your device near an NFC tag</li>
-                    <li style="margin-bottom: 8px;"><strong>Writing:</strong> Select a template, fill in the details, and tap "Write to Tag"</li>
-                    <li style="margin-bottom: 8px;"><strong>Saving:</strong> Save frequently used tags for quick access later</li>
-                    <li style="margin-bottom: 8px;"><strong>Automation:</strong> Configure settings to customize your NFC experience</li>
+                    <li style="margin-bottom: 8px;"><strong>Scanning:</strong> Tap "Scan NFC Tag" and hold device near tag</li>
+                    <li style="margin-bottom: 8px;"><strong>Writing:</strong> Select template, fill details, tap "Write to Tag"</li>
+                    <li style="margin-bottom: 8px;"><strong>Saving:</strong> Save frequently used tags for quick access</li>
                 </ol>
-
-                <h4 style="color: #333; margin: 20px 0 10px;">Supported Tag Types:</h4>
-                <ul style="padding-left: 20px; color: #666;">
-                    <li>URLs & Web Links</li>
-                    <li>WiFi Credentials</li>
-                    <li>Contact Information (vCard)</li>
-                    <li>Phone Numbers & SMS</li>
-                    <li>Email Addresses</li>
-                    <li>App Launch URLs</li>
-                    <li>Plain Text</li>
-                    <li>Custom Data</li>
-                </ul>
             </div>
         </div>
     </div>
@@ -770,6 +656,9 @@
             </div>
 
             <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="saveTemplateConfig()" style="margin-bottom: 10px; background: #4caf50; color: white;">
+                    💾 Save Template
+                </button>
                 <button class="btn btn-secondary" onclick="closeWriteModal()" style="margin-bottom: 10px;">
                     ❌ Cancel
                 </button>
@@ -784,6 +673,24 @@
         let currentTagData = null;
         let selectedTemplate = null;
         let ndefReader = null;
+        let deferredPrompt = null;
+
+        // PWA Install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBanner').style.display = 'flex';
+        });
+
+        document.getElementById('installButton').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                document.getElementById('installBanner').style.display = 'none';
+            }
+        });
 
         // Check NFC support
         function checkNFCSupport() {
@@ -801,7 +708,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             checkNFCSupport();
             loadSavedTags();
-            loadSettings();
         });
 
         // Show status message
@@ -892,22 +798,6 @@
             currentTagData = tagInfo;
             displayTagData(tagInfo);
             
-            if (document.getElementById('soundEffects').checked) {
-                playSound('success');
-            }
-            
-            if (document.getElementById('scanNotifications').checked) {
-                showNotification('NFC Tag Scanned', 'Successfully read NFC tag data');
-            }
-
-            if (document.getElementById('autoSave').checked) {
-                autoSaveTag(tagInfo);
-            }
-
-            if (document.getElementById('autoOpenApps').checked) {
-                autoOpenContent(tagInfo);
-            }
-
             showStatus('✅ Tag read successfully!', 'success');
             document.getElementById('scanBtnText').textContent = '🔍 Tap to Scan NFC Tag';
         }
@@ -1071,16 +961,6 @@
                         <input type="url" id="appFallback" placeholder="https://play.google.com/store/apps/details?id=...">
                     </div>
                 `,
-                bluetooth: `
-                    <div class="form-group">
-                        <label>🔵 Bluetooth Device Name</label>
-                        <input type="text" id="btName" placeholder="My Bluetooth Device">
-                    </div>
-                    <div class="form-group">
-                        <label>📡 MAC Address (Optional)</label>
-                        <input type="text" id="btMac" placeholder="00:11:22:33:44:55">
-                    </div>
-                `,
                 social: `
                     <div class="form-group">
                         <label>🌐 Platform</label>
@@ -1096,12 +976,6 @@
                     <div class="form-group">
                         <label>👤 Username/Profile URL</label>
                         <input type="text" id="socialUsername" placeholder="username or full URL">
-                    </div>
-                `,
-                custom: `
-                    <div class="form-group">
-                        <label>⚙️ Custom Data</label>
-                        <textarea id="customData" placeholder="Enter custom data..."></textarea>
                     </div>
                 `
             };
@@ -1131,10 +1005,6 @@
                 
                 showStatus('✅ Successfully written to NFC tag!', 'success');
                 closeWriteModal();
-                
-                if (document.getElementById('soundEffects').checked) {
-                    playSound('success');
-                }
 
             } catch (error) {
                 console.error('Write error:', error);
@@ -1232,12 +1102,6 @@
                     records.push({ recordType: "url", data: socialUrl });
                     break;
 
-                case 'custom':
-                    const custom = document.getElementById('customData').value;
-                    if (!custom) return null;
-                    records.push({ recordType: "text", data: custom });
-                    break;
-
                 default:
                     return null;
             }
@@ -1279,21 +1143,46 @@
             showStatus('✅ Tag saved successfully!', 'success');
         }
 
-        // Auto save tag
-        function autoSaveTag(tagInfo) {
-            const savedTags = JSON.parse(localStorage.getItem('savedTags') || '[]');
-            const autoName = `Auto-saved ${new Date().toLocaleString()}`;
+        // Save template configuration
+        function saveTemplateConfig() {
+            if (!selectedTemplate) {
+                showStatus('❌ Please select a template first', 'error');
+                return;
+            }
+
+            const ndefMessage = buildNDEFMessage(selectedTemplate);
             
+            if (!ndefMessage) {
+                showStatus('❌ Please fill in all required fields', 'error');
+                return;
+            }
+
+            const name = prompt('Enter a name for this template:');
+            if (!name) return;
+
+            // Convert to tag data format
+            const tagData = {
+                serialNumber: 'Template (not scanned)',
+                records: ndefMessage.records.map(r => ({
+                    recordType: r.recordType,
+                    data: r.data,
+                    mediaType: null
+                }))
+            };
+
+            const savedTags = JSON.parse(localStorage.getItem('savedTags') || '[]');
             savedTags.push({
                 id: Date.now(),
-                name: autoName,
-                data: tagInfo,
+                name: name,
+                data: tagData,
                 date: new Date().toISOString(),
-                auto: true
+                isTemplate: true
             });
             
             localStorage.setItem('savedTags', JSON.stringify(savedTags));
             loadSavedTags();
+            showStatus('✅ Template saved successfully!', 'success');
+            closeWriteModal();
         }
 
         // Share tag data
@@ -1329,10 +1218,15 @@
                 return;
             }
             
-            container.innerHTML = savedTags.map(tag => `
+            container.innerHTML = savedTags.map(tag => {
+                const badge = tag.isTemplate ? 
+                    '<span style="background: #4caf50; color: white; padding: 4px 10px; border-radius: 8px; font-size: 12px; margin-left: 8px;">Template</span>' : 
+                    '';
+                
+                return `
                 <div class="saved-tag">
                     <div class="saved-tag-header">
-                        <div class="saved-tag-title">${tag.name}</div>
+                        <div class="saved-tag-title">${tag.name}${badge}</div>
                         <div class="saved-tag-type">${new Date(tag.date).toLocaleDateString()}</div>
                     </div>
                     <div class="saved-tag-content">
@@ -1343,7 +1237,8 @@
                         <button class="btn-delete" onclick="deleteSavedTag(${tag.id})">🗑️ Delete</button>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         // Write saved tag
@@ -1376,224 +1271,11 @@
             showStatus('✅ Tag deleted', 'success');
         }
 
-        // Auto open content
-        function autoOpenContent(tagInfo) {
-            const browserAction = document.getElementById('browserAction').value;
-            
-            for (const record of tagInfo.records) {
-                if (record.recordType === 'url') {
-                    if (browserAction === 'open') {
-                        window.open(record.data, '_blank');
-                    } else if (browserAction === 'ask') {
-                        if (confirm(`Open URL: ${record.data}?`)) {
-                            window.open(record.data, '_blank');
-                        }
-                    } else if (browserAction === 'copy') {
-                        navigator.clipboard.writeText(record.data);
-                        showStatus('URL copied to clipboard', 'success');
-                    }
-                }
-            }
-        }
-
-        // Play sound
-        function playSound(type) {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            if (type === 'success') {
-                oscillator.frequency.value = 800;
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            }
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.2);
-        }
-
-        // Show notification
-        function showNotification(title, body) {
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification(title, { body: body, icon: '📱' });
-            }
-        }
-
-        // Request notification permission
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-
-        // Load settings
-        function loadSettings() {
-            const settings = JSON.parse(localStorage.getItem('nfcSettings') || '{}');
-            
-            document.getElementById('autoOpenApps').checked = settings.autoOpenApps !== false;
-            document.getElementById('scanNotifications').checked = settings.scanNotifications !== false;
-            document.getElementById('autoSave').checked = settings.autoSave || false;
-            document.getElementById('soundEffects').checked = settings.soundEffects !== false;
-            document.getElementById('browserAction').value = settings.browserAction || 'open';
-            
-            // Save on change
-            document.querySelectorAll('#automationSection input, #automationSection select').forEach(el => {
-                el.addEventListener('change', saveSettings);
-            });
-        }
-
-        // Save settings
-        function saveSettings() {
-            const settings = {
-                autoOpenApps: document.getElementById('autoOpenApps').checked,
-                scanNotifications: document.getElementById('scanNotifications').checked,
-                autoSave: document.getElementById('autoSave').checked,
-                soundEffects: document.getElementById('soundEffects').checked,
-                browserAction: document.getElementById('browserAction').value
-            };
-            
-            localStorage.setItem('nfcSettings', JSON.stringify(settings));
-            showStatus('✅ Settings saved', 'success');
-        }
-
-        // Export settings
-        function exportSettings() {
-            const data = {
-                settings: JSON.parse(localStorage.getItem('nfcSettings') || '{}'),
-                savedTags: JSON.parse(localStorage.getItem('savedTags') || '[]')
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `nfc-backup-${Date.now()}.json`;
-            a.click();
-            
-            showStatus('✅ Settings exported', 'success');
-        }
-
-        // Import settings
-        function importSettings() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'application/json';
-            
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                
-                reader.onload = (event) => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-                        
-                        if (data.settings) {
-                            localStorage.setItem('nfcSettings', JSON.stringify(data.settings));
-                            loadSettings();
-                        }
-                        
-                        if (data.savedTags) {
-                            localStorage.setItem('savedTags', JSON.stringify(data.savedTags));
-                            loadSavedTags();
-                        }
-                        
-                        showStatus('✅ Settings imported successfully', 'success');
-                    } catch (error) {
-                        showStatus('❌ Invalid backup file', 'error');
-                    }
-                };
-                
-                reader.readAsText(file);
-            };
-            
-            input.click();
-        }
-
-        // Clear all data
-        function clearAllData() {
-            if (!confirm('This will delete all saved tags and settings. Are you sure?')) return;
-            
-            localStorage.removeItem('savedTags');
-            localStorage.removeItem('nfcSettings');
-            loadSavedTags();
-            loadSettings();
-            showStatus('✅ All data cleared', 'success');
-        }
-
         // Click outside modal to close
         document.getElementById('writeModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeWriteModal();
             }
-        });
-
-        // PWA Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registered:', registration);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
-
-        // PWA Install Prompt
-        let deferredPrompt;
-        const installPromptDiv = document.createElement('div');
-        installPromptDiv.id = 'installPrompt';
-        installPromptDiv.style.cssText = 'position: fixed; bottom: 80px; left: 20px; right: 20px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 999; display: none;';
-        installPromptDiv.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
-                <div>
-                    <div style="font-weight: 600; margin-bottom: 5px;">📱 Install NFC App</div>
-                    <div style="font-size: 13px; color: #666;">Add to home screen for easy access</div>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="dismissInstallPrompt()" style="padding: 10px 15px; background: #f0f0f0; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Later</button>
-                    <button onclick="installPWA()" style="padding: 10px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Install</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(installPromptDiv);
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            // Show install prompt after 5 seconds if not already installed
-            setTimeout(() => {
-                if (!window.matchMedia('(display-mode: standalone)').matches) {
-                    document.getElementById('installPrompt').style.display = 'block';
-                }
-            }, 5000);
-        });
-
-        function installPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('PWA installed');
-                        showStatus('✅ App installed! Check your home screen', 'success');
-                    }
-                    deferredPrompt = null;
-                    document.getElementById('installPrompt').style.display = 'none';
-                });
-            }
-        }
-
-        function dismissInstallPrompt() {
-            document.getElementById('installPrompt').style.display = 'none';
-        }
-
-        // Check if already installed
-        window.addEventListener('appinstalled', () => {
-            console.log('PWA was installed');
-            showStatus('✅ App installed successfully!', 'success');
-            document.getElementById('installPrompt').style.display = 'none';
         });
     </script>
 </body>
