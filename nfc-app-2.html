@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NFC Tag Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 20px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .scan-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .scan-btn:active {
+            transform: scale(0.98);
+        }
+
+        .scan-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .status.warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .template-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .template-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .template-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .template-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .saved-tag {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .saved-tag-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .saved-tag-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .saved-tag-type {
+            font-size: 12px;
+            color: #666;
+            background: #e0e0e0;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .saved-tag-content {
+            font-size: 13px;
+            color: #666;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+
+        .saved-tag-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .saved-tag-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-write {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .automation-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .automation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 500px;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 2px solid #f0f0f0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            font-size: 32px;
+            cursor: pointer;
+            color: #666;
+            background: #f0f0f0;
+            border: none;
+            padding: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            line-height: 1;
+            border-radius: 50%;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .close-btn:hover {
+            color: white;
+            background: #667eea;
+            transform: scale(1.1);
+        }
+
+        .close-btn:active {
+            transform: scale(0.95);
+        }
+
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 2px solid #f0f0f0;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .quick-action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quick-action {
+            padding: 15px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .quick-action:active {
+            transform: scale(0.95);
+        }
+
+        .action-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .action-label {
+            font-size: 13px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 NFC Tag Manager</h1>
+            <p>Read, Write & Automate NFC Tags</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <div id="scanSection">
+                <button class="scan-btn" id="scanBtn">
+                    <span id="scanBtnText">🔍 Tap to Scan NFC Tag</span>
+                </button>
+                
+                <div id="statusMessage" class="status info hidden">
+                    Ready to scan...
+                </div>
+
+                <div id="tagDataDisplay" class="hidden" style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #333;">📋 Tag Information</h3>
+                    <div id="tagData" style="background: #f8f9fa; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 13px; word-break: break-all;"></div>
+                    
+                    <div class="quick-action-grid">
+                        <div class="quick-action" onclick="copyTagData()">
+                            <div class="action-icon">📋</div>
+                            <div class="action-label">Copy Data</div>
+                        </div>
+                        <div class="quick-action" onclick="saveCurrentTag()">
+                            <div class="action-icon">💾</div>
+                            <div class="action-label">Save Tag</div>
+                        </div>
+                        <div class="quick-action" onclick="shareTagData()">
+                            <div class="action-icon">📤</div>
+                            <div class="action-label">Share</div>
+                        </div>
+                        <div class="quick-action" onclick="showWriteModal()">
+                            <div class="action-icon">✍️</div>
+                            <div class="action-label">Write New</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Templates Section -->
+        <div class="card" id="templatesSection">
+            <h3 style="margin-bottom: 15px; color: #333;">🎨 Quick Templates</h3>
+            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Select a template and write to your NFC tag</p>
+            
+            <div class="template-grid" id="templateGrid">
+                <div class="template-card" onclick="selectTemplate('wifi')">
+                    <div class="template-icon">📶</div>
+                    <div class="template-name">WiFi</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('url')">
+                    <div class="template-icon">🔗</div>
+                    <div class="template-name">Website</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('phone')">
+                    <div class="template-icon">📞</div>
+                    <div class="template-name">Phone Call</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('sms')">
+                    <div class="template-icon">💬</div>
+                    <div class="template-name">SMS</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('email')">
+                    <div class="template-icon">📧</div>
+                    <div class="template-name">Email</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('vcard')">
+                    <div class="template-icon">👤</div>
+                    <div class="template-name">Contact</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('location')">
+                    <div class="template-icon">📍</div>
+                    <div class="template-name">Location</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('text')">
+                    <div class="template-icon">📝</div>
+                    <div class="template-name">Plain Text</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('app')">
+                    <div class="template-icon">📲</div>
+                    <div class="template-name">Open App</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('bluetooth')">
+                    <div class="template-icon">🔵</div>
+                    <div class="template-name">Bluetooth</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('social')">
+                    <div class="template-icon">🌐</div>
+                    <div class="template-name">Social Media</div>
+                </div>
+                <div class="template-card" onclick="selectTemplate('custom')">
+                    <div class="template-icon">⚙️</div>
+                    <div class="template-name">Custom</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved Tags Section -->
+        <div class="card" id="savedSection">
+            <h3 style="margin-bottom: 15px; color: #333;">💾 Saved Tags</h3>
+            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Your saved NFC tag configurations</p>
+            <div id="savedTagsList"></div>
+        </div>
+
+        <!-- Automation Section -->
+        <div class="card" id="automationSection">
+            <h3 style="margin-bottom: 15px; color: #333;">🤖 Automation & Settings</h3>
+            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Configure automatic actions when scanning tags</p>
+            
+            <div class="info-box">
+                <strong>ℹ️ Note:</strong> Due to browser limitations, some automation features may require additional permissions or may not work on all devices. For full automation, consider using your phone's built-in NFC automation tools or dedicated apps.
+            </div>
+
+            <div class="automation-item">
+                <div class="automation-header">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">📱 Auto-Open App Links</div>
+                        <div style="font-size: 12px; color: #666;">Automatically open apps from NFC tags</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoOpenApps" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="automation-item">
+                <div class="automation-header">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">🔔 Scan Notifications</div>
+                        <div style="font-size: 12px; color: #666;">Show notifications on successful scans</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="scanNotifications" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="automation-item">
+                <div class="automation-header">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">💾 Auto-Save Scanned Tags</div>
+                        <div style="font-size: 12px; color: #666;">Automatically save all scanned tags</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoSave">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="automation-item">
+                <div class="automation-header">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">🔊 Sound Effects</div>
+                        <div style="font-size: 12px; color: #666;">Play sounds for scans and writes</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="soundEffects" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label>🌐 Default Browser Action</label>
+                <select id="browserAction" style="cursor: pointer;">
+                    <option value="open">Open URLs immediately</option>
+                    <option value="ask">Ask before opening URLs</option>
+                    <option value="copy">Just copy URLs</option>
+                </select>
+            </div>
+
+            <button class="btn btn-secondary" onclick="exportSettings()">
+                📤 Export Settings
+            </button>
+            <button class="btn btn-secondary" onclick="importSettings()">
+                📥 Import Settings
+            </button>
+            <button class="btn btn-secondary" onclick="clearAllData()" style="background: #f44336; color: white; margin-top: 5px;">
+                🗑️ Clear All Data
+            </button>
+        </div>
+
+        <!-- Info Section -->
+        <div class="card">
+            <h3 style="margin-bottom: 15px; color: #333;">ℹ️ About & Help</h3>
+            
+            <div class="info-box">
+                <strong>📱 Device Compatibility:</strong><br>
+                This app requires a device with NFC capability and a browser that supports Web NFC API (currently Chrome/Edge on Android).
+            </div>
+
+            <div style="margin-top: 15px; font-size: 13px; line-height: 1.8;">
+                <h4 style="color: #333; margin-bottom: 10px;">How to Use:</h4>
+                <ol style="padding-left: 20px; color: #666;">
+                    <li style="margin-bottom: 8px;"><strong>Scanning:</strong> Tap "Scan NFC Tag" and hold your device near an NFC tag</li>
+                    <li style="margin-bottom: 8px;"><strong>Writing:</strong> Select a template, fill in the details, and tap "Write to Tag"</li>
+                    <li style="margin-bottom: 8px;"><strong>Saving:</strong> Save frequently used tags for quick access later</li>
+                    <li style="margin-bottom: 8px;"><strong>Automation:</strong> Configure settings to customize your NFC experience</li>
+                </ol>
+
+                <h4 style="color: #333; margin: 20px 0 10px;">Supported Tag Types:</h4>
+                <ul style="padding-left: 20px; color: #666;">
+                    <li>URLs & Web Links</li>
+                    <li>WiFi Credentials</li>
+                    <li>Contact Information (vCard)</li>
+                    <li>Phone Numbers & SMS</li>
+                    <li>Email Addresses</li>
+                    <li>App Launch URLs</li>
+                    <li>Plain Text</li>
+                    <li>Custom Data</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Write Modal -->
+    <div id="writeModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">✍️ Write to NFC Tag</h3>
+                <button class="close-btn" onclick="closeWriteModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div id="writeFormContainer"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeWriteModal()" style="margin-bottom: 10px;">
+                    ❌ Cancel
+                </button>
+                <button class="btn btn-primary" onclick="writeToTag()">
+                    ✍️ Write to Tag
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTagData = null;
+        let selectedTemplate = null;
+        let ndefReader = null;
+
+        // Check NFC support
+        function checkNFCSupport() {
+            if ('NDEFReader' in window) {
+                showStatus('NFC is supported! Ready to scan.', 'success');
+                return true;
+            } else {
+                showStatus('NFC is not supported on this browser/device. Please use Chrome on Android with NFC enabled.', 'error');
+                document.getElementById('scanBtn').disabled = true;
+                return false;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkNFCSupport();
+            loadSavedTags();
+            loadSettings();
+        });
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.classList.remove('hidden');
+
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    statusEl.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        // Scan NFC Tag
+        document.getElementById('scanBtn').addEventListener('click', async function() {
+            if (!('NDEFReader' in window)) {
+                showStatus('NFC not supported on this device/browser', 'error');
+                return;
+            }
+
+            try {
+                if (!ndefReader) {
+                    ndefReader = new NDEFReader();
+                }
+
+                showStatus('🔍 Scanning... Hold your device near an NFC tag', 'info');
+                document.getElementById('scanBtnText').textContent = '🔄 Scanning...';
+                
+                await ndefReader.scan();
+                
+                showStatus('✅ Scanner active! Tap an NFC tag now.', 'success');
+                document.getElementById('scanBtnText').textContent = '✅ Scanner Active';
+
+                ndefReader.onreading = event => {
+                    handleNFCRead(event);
+                };
+
+                ndefReader.onreadingerror = () => {
+                    showStatus('❌ Error reading NFC tag. Try again.', 'error');
+                    document.getElementById('scanBtnText').textContent = '🔍 Tap to Scan NFC Tag';
+                };
+
+            } catch (error) {
+                console.error('NFC scan error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+                document.getElementById('scanBtnText').textContent = '🔍 Tap to Scan NFC Tag';
+            }
+        });
+
+        // Handle NFC read
+        function handleNFCRead(event) {
+            const message = event.message;
+            const serialNumber = event.serialNumber;
+            
+            let tagInfo = {
+                serialNumber: serialNumber,
+                records: []
+            };
+
+            for (const record of message.records) {
+                const recordData = {
+                    recordType: record.recordType,
+                    mediaType: record.mediaType,
+                    data: null
+                };
+
+                try {
+                    if (record.recordType === "text") {
+                        const textDecoder = new TextDecoder(record.encoding);
+                        recordData.data = textDecoder.decode(record.data);
+                    } else if (record.recordType === "url") {
+                        const textDecoder = new TextDecoder();
+                        recordData.data = textDecoder.decode(record.data);
+                    } else {
+                        const textDecoder = new TextDecoder();
+                        recordData.data = textDecoder.decode(record.data);
+                    }
+                } catch (e) {
+                    recordData.data = "Unable to decode data";
+                }
+
+                tagInfo.records.push(recordData);
+            }
+
+            currentTagData = tagInfo;
+            displayTagData(tagInfo);
+            
+            if (document.getElementById('soundEffects').checked) {
+                playSound('success');
+            }
+            
+            if (document.getElementById('scanNotifications').checked) {
+                showNotification('NFC Tag Scanned', 'Successfully read NFC tag data');
+            }
+
+            if (document.getElementById('autoSave').checked) {
+                autoSaveTag(tagInfo);
+            }
+
+            if (document.getElementById('autoOpenApps').checked) {
+                autoOpenContent(tagInfo);
+            }
+
+            showStatus('✅ Tag read successfully!', 'success');
+            document.getElementById('scanBtnText').textContent = '🔍 Tap to Scan NFC Tag';
+        }
+
+        // Display tag data
+        function displayTagData(tagInfo) {
+            const displayEl = document.getElementById('tagData');
+            let html = '';
+
+            html += `<div style="margin-bottom: 10px;"><strong>Serial Number:</strong><br>${tagInfo.serialNumber}</div>`;
+            
+            tagInfo.records.forEach((record, index) => {
+                html += `<div style="margin-bottom: 10px; padding-top: 10px; border-top: 1px solid #ddd;">`;
+                html += `<strong>Record ${index + 1}:</strong><br>`;
+                html += `Type: ${record.recordType}<br>`;
+                if (record.mediaType) {
+                    html += `Media Type: ${record.mediaType}<br>`;
+                }
+                html += `Data: ${record.data}`;
+                html += `</div>`;
+            });
+
+            displayEl.innerHTML = html;
+            document.getElementById('tagDataDisplay').classList.remove('hidden');
+        }
+
+        // Select template
+        function selectTemplate(type) {
+            selectedTemplate = type;
+            
+            // Remove selected class from all
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked
+            event.target.closest('.template-card').classList.add('selected');
+            
+            showWriteModal(type);
+        }
+
+        // Show write modal
+        function showWriteModal(template = null) {
+            if (template) {
+                selectedTemplate = template;
+            }
+            
+            const formContainer = document.getElementById('writeFormContainer');
+            formContainer.innerHTML = getTemplateForm(selectedTemplate || 'text');
+            
+            document.getElementById('writeModal').classList.remove('hidden');
+        }
+
+        // Close write modal
+        function closeWriteModal() {
+            document.getElementById('writeModal').classList.add('hidden');
+        }
+
+        // Get template form
+        function getTemplateForm(type) {
+            const forms = {
+                text: `
+                    <div class="form-group">
+                        <label>📝 Text Content</label>
+                        <textarea id="textContent" placeholder="Enter your text here..."></textarea>
+                    </div>
+                `,
+                url: `
+                    <div class="form-group">
+                        <label>🔗 Website URL</label>
+                        <input type="url" id="urlContent" placeholder="https://example.com">
+                    </div>
+                `,
+                wifi: `
+                    <div class="form-group">
+                        <label>📶 Network Name (SSID)</label>
+                        <input type="text" id="wifiSSID" placeholder="MyWiFi">
+                    </div>
+                    <div class="form-group">
+                        <label>🔒 Security Type</label>
+                        <select id="wifiSecurity">
+                            <option value="WPA">WPA/WPA2</option>
+                            <option value="WEP">WEP</option>
+                            <option value="nopass">Open (No Password)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🔑 Password</label>
+                        <input type="text" id="wifiPassword" placeholder="Password">
+                    </div>
+                `,
+                phone: `
+                    <div class="form-group">
+                        <label>📞 Phone Number</label>
+                        <input type="tel" id="phoneNumber" placeholder="+1234567890">
+                    </div>
+                `,
+                sms: `
+                    <div class="form-group">
+                        <label>📱 Phone Number</label>
+                        <input type="tel" id="smsNumber" placeholder="+1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>💬 Message</label>
+                        <textarea id="smsMessage" placeholder="Your message here..."></textarea>
+                    </div>
+                `,
+                email: `
+                    <div class="form-group">
+                        <label>📧 Email Address</label>
+                        <input type="email" id="emailAddress" placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>📋 Subject (Optional)</label>
+                        <input type="text" id="emailSubject" placeholder="Subject">
+                    </div>
+                    <div class="form-group">
+                        <label>✉️ Body (Optional)</label>
+                        <textarea id="emailBody" placeholder="Email body..."></textarea>
+                    </div>
+                `,
+                vcard: `
+                    <div class="form-group">
+                        <label>👤 Full Name</label>
+                        <input type="text" id="vcardName" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>📞 Phone</label>
+                        <input type="tel" id="vcardPhone" placeholder="+1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>📧 Email</label>
+                        <input type="email" id="vcardEmail" placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>🏢 Company (Optional)</label>
+                        <input type="text" id="vcardCompany" placeholder="Company Name">
+                    </div>
+                `,
+                location: `
+                    <div class="form-group">
+                        <label>📍 Location Name</label>
+                        <input type="text" id="locationName" placeholder="My Place">
+                    </div>
+                    <div class="form-group">
+                        <label>🌍 Latitude</label>
+                        <input type="text" id="locationLat" placeholder="40.7128">
+                    </div>
+                    <div class="form-group">
+                        <label>🌍 Longitude</label>
+                        <input type="text" id="locationLng" placeholder="-74.0060">
+                    </div>
+                `,
+                app: `
+                    <div class="form-group">
+                        <label>📲 App Package Name or URL Scheme</label>
+                        <input type="text" id="appPackage" placeholder="com.example.app or spotify://">
+                    </div>
+                    <div class="form-group">
+                        <label>🔗 Fallback URL (if app not installed)</label>
+                        <input type="url" id="appFallback" placeholder="https://play.google.com/store/apps/details?id=...">
+                    </div>
+                `,
+                bluetooth: `
+                    <div class="form-group">
+                        <label>🔵 Bluetooth Device Name</label>
+                        <input type="text" id="btName" placeholder="My Bluetooth Device">
+                    </div>
+                    <div class="form-group">
+                        <label>📡 MAC Address (Optional)</label>
+                        <input type="text" id="btMac" placeholder="00:11:22:33:44:55">
+                    </div>
+                `,
+                social: `
+                    <div class="form-group">
+                        <label>🌐 Platform</label>
+                        <select id="socialPlatform">
+                            <option value="twitter">Twitter/X</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="tiktok">TikTok</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>👤 Username/Profile URL</label>
+                        <input type="text" id="socialUsername" placeholder="username or full URL">
+                    </div>
+                `,
+                custom: `
+                    <div class="form-group">
+                        <label>⚙️ Custom Data</label>
+                        <textarea id="customData" placeholder="Enter custom data..."></textarea>
+                    </div>
+                `
+            };
+
+            return forms[type] || forms.text;
+        }
+
+        // Write to tag
+        async function writeToTag() {
+            if (!('NDEFReader' in window)) {
+                showStatus('NFC writing not supported on this device/browser', 'error');
+                return;
+            }
+
+            try {
+                const ndefMessage = buildNDEFMessage(selectedTemplate);
+                
+                if (!ndefMessage) {
+                    showStatus('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                const writer = new NDEFReader();
+                showStatus('✍️ Ready to write. Hold your device near an NFC tag...', 'info');
+                
+                await writer.write(ndefMessage);
+                
+                showStatus('✅ Successfully written to NFC tag!', 'success');
+                closeWriteModal();
+                
+                if (document.getElementById('soundEffects').checked) {
+                    playSound('success');
+                }
+
+            } catch (error) {
+                console.error('Write error:', error);
+                showStatus(`Write failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Build NDEF message
+        function buildNDEFMessage(type) {
+            let records = [];
+
+            switch(type) {
+                case 'text':
+                    const text = document.getElementById('textContent').value;
+                    if (!text) return null;
+                    records.push({ recordType: "text", data: text });
+                    break;
+
+                case 'url':
+                    const url = document.getElementById('urlContent').value;
+                    if (!url) return null;
+                    records.push({ recordType: "url", data: url });
+                    break;
+
+                case 'wifi':
+                    const ssid = document.getElementById('wifiSSID').value;
+                    const password = document.getElementById('wifiPassword').value;
+                    const security = document.getElementById('wifiSecurity').value;
+                    if (!ssid) return null;
+                    
+                    const wifiString = `WIFI:T:${security};S:${ssid};P:${password};;`;
+                    records.push({ recordType: "text", data: wifiString });
+                    break;
+
+                case 'phone':
+                    const phone = document.getElementById('phoneNumber').value;
+                    if (!phone) return null;
+                    records.push({ recordType: "url", data: `tel:${phone}` });
+                    break;
+
+                case 'sms':
+                    const smsNumber = document.getElementById('smsNumber').value;
+                    const smsMessage = document.getElementById('smsMessage').value;
+                    if (!smsNumber) return null;
+                    records.push({ recordType: "url", data: `sms:${smsNumber}?body=${encodeURIComponent(smsMessage)}` });
+                    break;
+
+                case 'email':
+                    const email = document.getElementById('emailAddress').value;
+                    const subject = document.getElementById('emailSubject').value;
+                    const body = document.getElementById('emailBody').value;
+                    if (!email) return null;
+                    records.push({ recordType: "url", data: `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}` });
+                    break;
+
+                case 'vcard':
+                    const name = document.getElementById('vcardName').value;
+                    const vcardPhone = document.getElementById('vcardPhone').value;
+                    const vcardEmail = document.getElementById('vcardEmail').value;
+                    const company = document.getElementById('vcardCompany').value;
+                    if (!name) return null;
+                    
+                    const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${vcardPhone}\nEMAIL:${vcardEmail}\nORG:${company}\nEND:VCARD`;
+                    records.push({ recordType: "text", data: vcard });
+                    break;
+
+                case 'location':
+                    const lat = document.getElementById('locationLat').value;
+                    const lng = document.getElementById('locationLng').value;
+                    if (!lat || !lng) return null;
+                    records.push({ recordType: "url", data: `geo:${lat},${lng}` });
+                    break;
+
+                case 'app':
+                    const appPackage = document.getElementById('appPackage').value;
+                    if (!appPackage) return null;
+                    records.push({ recordType: "url", data: appPackage });
+                    break;
+
+                case 'social':
+                    const platform = document.getElementById('socialPlatform').value;
+                    const username = document.getElementById('socialUsername').value;
+                    if (!username) return null;
+                    
+                    const socialUrls = {
+                        twitter: `https://twitter.com/${username}`,
+                        instagram: `https://instagram.com/${username}`,
+                        facebook: `https://facebook.com/${username}`,
+                        linkedin: `https://linkedin.com/in/${username}`,
+                        youtube: `https://youtube.com/@${username}`,
+                        tiktok: `https://tiktok.com/@${username}`
+                    };
+                    
+                    const socialUrl = username.startsWith('http') ? username : socialUrls[platform];
+                    records.push({ recordType: "url", data: socialUrl });
+                    break;
+
+                case 'custom':
+                    const custom = document.getElementById('customData').value;
+                    if (!custom) return null;
+                    records.push({ recordType: "text", data: custom });
+                    break;
+
+                default:
+                    return null;
+            }
+
+            return { records: records };
+        }
+
+        // Copy tag data
+        function copyTagData() {
+            if (!currentTagData) return;
+            
+            let text = `Serial: ${currentTagData.serialNumber}\n\n`;
+            currentTagData.records.forEach((record, i) => {
+                text += `Record ${i + 1}:\nType: ${record.recordType}\nData: ${record.data}\n\n`;
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showStatus('✅ Copied to clipboard!', 'success');
+            });
+        }
+
+        // Save current tag
+        function saveCurrentTag() {
+            if (!currentTagData) return;
+            
+            const name = prompt('Enter a name for this tag:');
+            if (!name) return;
+            
+            const savedTags = JSON.parse(localStorage.getItem('savedTags') || '[]');
+            savedTags.push({
+                id: Date.now(),
+                name: name,
+                data: currentTagData,
+                date: new Date().toISOString()
+            });
+            
+            localStorage.setItem('savedTags', JSON.stringify(savedTags));
+            loadSavedTags();
+            showStatus('✅ Tag saved successfully!', 'success');
+        }
+
+        // Auto save tag
+        function autoSaveTag(tagInfo) {
+            const savedTags = JSON.parse(localStorage.getItem('savedTags') || '[]');
+            const autoName = `Auto-saved ${new Date().toLocaleString()}`;
+            
+            savedTags.push({
+                id: Date.now(),
+                name: autoName,
+                data: tagInfo,
+                date: new Date().toISOString(),
+                auto: true
+            });
+            
+            localStorage.setItem('savedTags', JSON.stringify(savedTags));
+            loadSavedTags();
+        }
+
+        // Share tag data
+        async function shareTagData() {
+            if (!currentTagData) return;
+            
+            let text = `NFC Tag Data\n\nSerial: ${currentTagData.serialNumber}\n\n`;
+            currentTagData.records.forEach((record, i) => {
+                text += `Record ${i + 1}:\n${record.data}\n\n`;
+            });
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'NFC Tag Data',
+                        text: text
+                    });
+                } catch (err) {
+                    console.log('Share cancelled');
+                }
+            } else {
+                copyTagData();
+            }
+        }
+
+        // Load saved tags
+        function loadSavedTags() {
+            const savedTags = JSON.parse(localStorage.getItem('savedTags') || '[]');
+            const container = document.getElementById('savedTagsList');
+            
+            if (savedTags.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No saved tags yet</p>';
+                return;
+            }
+            
+            container.innerHTML = savedTags.map(tag => `
+                <div class="saved-tag">
+                    <div class="saved-tag-header">
+                        <div class="saved-tag-title">${tag.name}</div>
+                        <div class="saved-tag-type">${new Date(tag.date).toLocaleDateString()}</div>
+                    </div>
+                    <div class="saved-tag-content">
+                        ${tag.data.records.map(r => r.data).join(' • ')}
+                    </div>
+                    <div class="saved-tag-actions">
+                        <button class="btn-write" onclick="writeSavedTag(${tag.id})">✍️ Write</button>
+                        <button class="btn-delete" onclick="deleteSavedTag(${tag.id})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Write saved tag
+        async function writeSavedTag(id) {
+            const savedTags = JSON.parse(localStorage.getItem('savedTags') || '[]');
+            const tag = savedTags.find(t => t.id === id);
+            
+            if (!tag) return;
+            
+            try {
+                const writer = new NDEFReader();
+                showStatus('✍️ Ready to write. Hold your device near an NFC tag...', 'info');
+                
+                await writer.write({ records: tag.data.records });
+                
+                showStatus('✅ Successfully written to NFC tag!', 'success');
+            } catch (error) {
+                showStatus(`Write failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Delete saved tag
+        function deleteSavedTag(id) {
+            if (!confirm('Delete this saved tag?')) return;
+            
+            let savedTags = JSON.parse(localStorage.getItem('savedTags') || '[]');
+            savedTags = savedTags.filter(t => t.id !== id);
+            localStorage.setItem('savedTags', JSON.stringify(savedTags));
+            loadSavedTags();
+            showStatus('✅ Tag deleted', 'success');
+        }
+
+        // Auto open content
+        function autoOpenContent(tagInfo) {
+            const browserAction = document.getElementById('browserAction').value;
+            
+            for (const record of tagInfo.records) {
+                if (record.recordType === 'url') {
+                    if (browserAction === 'open') {
+                        window.open(record.data, '_blank');
+                    } else if (browserAction === 'ask') {
+                        if (confirm(`Open URL: ${record.data}?`)) {
+                            window.open(record.data, '_blank');
+                        }
+                    } else if (browserAction === 'copy') {
+                        navigator.clipboard.writeText(record.data);
+                        showStatus('URL copied to clipboard', 'success');
+                    }
+                }
+            }
+        }
+
+        // Play sound
+        function playSound(type) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (type === 'success') {
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            }
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        // Show notification
+        function showNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, { body: body, icon: '📱' });
+            }
+        }
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Load settings
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('nfcSettings') || '{}');
+            
+            document.getElementById('autoOpenApps').checked = settings.autoOpenApps !== false;
+            document.getElementById('scanNotifications').checked = settings.scanNotifications !== false;
+            document.getElementById('autoSave').checked = settings.autoSave || false;
+            document.getElementById('soundEffects').checked = settings.soundEffects !== false;
+            document.getElementById('browserAction').value = settings.browserAction || 'open';
+            
+            // Save on change
+            document.querySelectorAll('#automationSection input, #automationSection select').forEach(el => {
+                el.addEventListener('change', saveSettings);
+            });
+        }
+
+        // Save settings
+        function saveSettings() {
+            const settings = {
+                autoOpenApps: document.getElementById('autoOpenApps').checked,
+                scanNotifications: document.getElementById('scanNotifications').checked,
+                autoSave: document.getElementById('autoSave').checked,
+                soundEffects: document.getElementById('soundEffects').checked,
+                browserAction: document.getElementById('browserAction').value
+            };
+            
+            localStorage.setItem('nfcSettings', JSON.stringify(settings));
+            showStatus('✅ Settings saved', 'success');
+        }
+
+        // Export settings
+        function exportSettings() {
+            const data = {
+                settings: JSON.parse(localStorage.getItem('nfcSettings') || '{}'),
+                savedTags: JSON.parse(localStorage.getItem('savedTags') || '[]')
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `nfc-backup-${Date.now()}.json`;
+            a.click();
+            
+            showStatus('✅ Settings exported', 'success');
+        }
+
+        // Import settings
+        function importSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        
+                        if (data.settings) {
+                            localStorage.setItem('nfcSettings', JSON.stringify(data.settings));
+                            loadSettings();
+                        }
+                        
+                        if (data.savedTags) {
+                            localStorage.setItem('savedTags', JSON.stringify(data.savedTags));
+                            loadSavedTags();
+                        }
+                        
+                        showStatus('✅ Settings imported successfully', 'success');
+                    } catch (error) {
+                        showStatus('❌ Invalid backup file', 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (!confirm('This will delete all saved tags and settings. Are you sure?')) return;
+            
+            localStorage.removeItem('savedTags');
+            localStorage.removeItem('nfcSettings');
+            loadSavedTags();
+            loadSettings();
+            showStatus('✅ All data cleared', 'success');
+        }
+
+        // Click outside modal to close
+        document.getElementById('writeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeWriteModal();
+            }
+        });
+    </script>
+</body>
+</html>
